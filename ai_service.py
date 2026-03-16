@@ -4,11 +4,23 @@ from typing import List, Dict
 
 from dotenv import load_dotenv
 from openai import OpenAI
+import streamlit as st
 
 from prompt_template import INTERVIEW_PROMPT_TEMPLATE
 
 
 load_dotenv()
+
+
+def _get_api_key() -> str:
+    try:
+        secret_key = st.secrets.get("GROQ_API_KEY", "").strip()
+        if secret_key:
+            return secret_key
+    except Exception:
+        pass
+
+    return os.getenv("GROQ_API_KEY", "").strip()
 
 
 def _build_prompt(job_role: str, experience: str, skills: str) -> str:
@@ -56,10 +68,10 @@ def _extract_json_payload(text: str) -> List[Dict[str, str]]:
 
 
 def generate_questions(job_role: str, experience: str, skills: str) -> List[Dict[str, str]]:
-    api_key = os.getenv("GROQ_API_KEY")
+    api_key = _get_api_key()
     if not api_key:
         raise ValueError(
-            "Missing GROQ_API_KEY. Add it to your .env file before running the app."
+            "Missing GROQ_API_KEY. Add it to Streamlit secrets or your local .env file."
         )
     if not api_key.startswith("gsk_"):
         raise ValueError(
